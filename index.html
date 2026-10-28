@@ -137,7 +137,7 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTf9mjnYaOZHtjRoBwpQPfTBhAiTP1dvmkKFRW01XSoVBVh5MRDkUdzwdZfSfTyieb_FiAphI8yT-KsGHhKPZ_IZ2iWuqh_4GGuBApo5_BhEzNpTDzi9tubN1AMSwmL3p1K3Q-ZlfyYLVpUwGbxB0VUxDijxApg6u2ig3D1cHQGT9rs-sEmlbvQBOMgNuOsBwk5F8VE9Gv_ZxMwhsFZx7Tsl33x-T9LhgKvUCP5B0kHTEkrgOvPFGTWd_RDDwjyUslizOmFFkroOtOCTf3bvHyASP0vZg&lib=Mk6Z9y-DNoiMPDaBKk9VePDZ0IrIjuaVU";
+  const API_URL = "https://script.google.com/macros/s/AKfycbw033xWYdSXjEJ-Pq0WG20OVxGAiUvd03TFSwhaJLueeIHW1vRZmyK8xbiSuQ7OKpL09w/exec";
 
   async function callServer(method, ...args) {
     let res;
