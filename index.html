@@ -137,7 +137,7 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSsAaOcNuymg8MZ7cQI3y2POnNvvBbF-eOMMogAYmnce8FuM8gVhVTHvJLkjumP1D1RcfLxpdUDenH5Jc_Rifw8TzILNPEkcWd0RC2yc7dw4g0PZWVP52rYp-tySMotMnCEImfpiMYqJdv8vcfYTjoowIZyLx6iBsBjVvs3jBVgNevrcVGOACs-fDLZZdr6J5G7a7kznUdh1SJfoKGKtiD9v7LqfdQ6fcfXXlL-_MZnUtaDoZD60tGpTRp6MbAifvxJAY7xglH4bftsIVCWU3AJvEZn3w&lib=Mk6Z9y-DNoiMPDaBKk9VePDZ0IrIjuaVU";
+  const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTf9mjnYaOZHtjRoBwpQPfTBhAiTP1dvmkKFRW01XSoVBVh5MRDkUdzwdZfSfTyieb_FiAphI8yT-KsGHhKPZ_IZ2iWuqh_4GGuBApo5_BhEzNpTDzi9tubN1AMSwmL3p1K3Q-ZlfyYLVpUwGbxB0VUxDijxApg6u2ig3D1cHQGT9rs-sEmlbvQBOMgNuOsBwk5F8VE9Gv_ZxMwhsFZx7Tsl33x-T9LhgKvUCP5B0kHTEkrgOvPFGTWd_RDDwjyUslizOmFFkroOtOCTf3bvHyASP0vZg&lib=Mk6Z9y-DNoiMPDaBKk9VePDZ0IrIjuaVU";
 
   async function callServer(method, ...args) {
     let res;
