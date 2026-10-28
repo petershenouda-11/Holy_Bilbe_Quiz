@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>فرع الملاك | أسئلة القداس</title>
+  <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#0b0b14;--panel:#151526;--panel2:#1d1d32;--text:#f5f3ff;--muted:#b7b4ce;--accent:#a78bfa;--accent2:#7c3aed;--good:#86efac;--bad:#fca5a5;--border:#33324d}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at top,#21163e 0%,var(--bg) 55%);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    .wrap{max-width:900px;margin:auto;padding:28px 16px 60px}
+    header{text-align:center;margin:12px 0 28px}
+    .logo {
+  display: inline-block;
+  width: 150px;
+  height: 126.5625px;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+    .subtitle{color:var(--muted);margin:0}
+    .layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(240px,.7fr);gap:16px}
+    .card{background:#151526ed;border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:0 18px 45px #0002}
+    h2{font-size:19px;margin:0 0 14px}
+    label{display:block;color:var(--muted);font-size:14px;margin:13px 0 6px}
+    input{width:100%;border:1px solid var(--border);background:#0e0e1b;color:var(--text);padding:13px 14px;border-radius:12px;font:inherit;outline:none}
+    input:focus{border-color:var(--accent)}
+    button{border:0;border-radius:12px;padding:12px 15px;font:inherit;font-weight:750;cursor:pointer;transition:transform .12s,opacity .12s}
+    button:hover{transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .primary{width:100%;margin-top:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
+    .secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+    .row{display:flex;gap:9px}.row>*{flex:1}
+    .status{min-height:24px;margin:10px 0 0;font-size:14px;color:var(--muted)}.status.good{color:var(--good)}.status.bad{color:var(--bad)}
+    .hint{color:var(--muted);font-size:13px;margin-top:12px}
+    .hidden{display:none!important}
+    .pill{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--border);background:#0e0e1b;padding:6px 10px;border-radius:999px;color:var(--muted);font-size:13px}
+    .leader-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #2b2a40}.leader-row:last-child{border:0}
+    .rank{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--panel2);font-weight:800}
+    .leader-name{flex:1;overflow-wrap:anywhere}.score{font-weight:800;color:#c4b5fd}
+    .quiz-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
+    .timer{font-variant-numeric:tabular-nums;color:#ddd6fe;font-weight:800;background:#312451;padding:8px 12px;border-radius:12px;white-space:nowrap}
+    .progress{height:6px;background:#302d45;border-radius:99px;overflow:hidden;margin:12px 0 22px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+    .question{direction:rtl;text-align:right;font-size:22px;font-weight:750;line-height:1.3;margin:12px 0 18px}
+    .option{direction:rtl;text-align:right;display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:14px;margin:9px 0;background:#1b1b30;color:var(--text);border:1px solid var(--border);border-radius:13px;font-weight:500}
+    .option.selected{border-color:var(--accent);background:#2a2145}.option .letter{display:grid;place-items:center;min-width:30px;height:30px;border-radius:9px;background:#30304a;font-weight:800}
+    .quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
+    .result{text-align:center;padding:20px 0}.result-score{font-size:52px;line-height:1.2;font-weight:900;color:#c4b5fd;margin:10px}
+    #reader{width:100%;margin-top:12px;overflow:hidden;border-radius:12px}
+    footer{text-align:center;color:#77748e;font-size:12px;margin-top:24px}
+    @media(max-width:720px){.layout{grid-template-columns:1fr}.wrap{padding-top:18px}.card{padding:18px}.question{font-size:20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img
+  class="logo"
+  src="data:image/webp;base64,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"
+  alt="Archangel Michael image"
+>
+    <h1>فرع الملاك</h1>
+    <p class="subtitle">اختبر معلوماتك عن القداس القبطي</p>
+  </header>
+
+  <div class="layout">
+    <main class="card">
+      <section id="entry">
+        <h2>ابدأ الاختبار</h2>
+        <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
+        <label for="studentId">رقم المشارك</label>
+        <input id="studentId" autocomplete="off" placeholder="مثال: P001">
+        <div class="row" style="margin-top:9px">
+          <button id="scanBtn" class="secondary" type="button">امسح QR</button>
+          <button id="verifyBtn" class="secondary" type="button">تأكيد الرقم</button>
+        </div>
+        <div id="reader" class="hidden"></div>
+        <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
+        <p id="entryStatus" class="status" role="status"></p>
+        <p class="hint">يُفضّل أن يحتوي رمز QR على رقم المشارك فقط، دون أي بيانات شخصية.</p>
+      </section>
+
+      <section id="quiz" class="hidden">
+        <div class="quiz-head">
+          <span class="pill" id="questionCounter">السؤال 1</span>
+          <span class="timer" id="timer">00:00</span>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div id="questionText" class="question"></div>
+        <div id="options"></div>
+        <div class="quiz-actions">
+          <button id="prevBtn" class="secondary" type="button">السابق</button>
+          <button id="nextBtn" class="primary" style="width:auto;margin:0" type="button">التالي</button>
+          <button id="submitBtn" class="primary hidden" style="width:auto;margin:0" type="button">تسليم الإجابات</button>
+        </div>
+        <p id="quizStatus" class="status" role="status"></p>
+      </section>
+
+      <section id="result" class="hidden result">
+        <span class="pill">انتهى الاختبار</span>
+        <h2 style="margin-top:18px">نتيجتك</h2>
+        <div id="resultScore" class="result-score">0/5</div>
+        <p id="resultMessage" class="subtitle"></p>
+        <button id="againBtn" class="primary" type="button">العودة للبداية</button>
+      </section>
+    </main>
+
+    <aside class="card">
+      <h2>لوحة المتصدرين</h2>
+      <p class="subtitle" id="leaderboardSubtitle">أعلى النتائج في هذا الاختبار</p>
+      <div id="leaderboard"><p class="status">جارٍ تحميل النتائج…</p></div>
+      <button id="refreshBtn" class="secondary" style="width:100%;margin-top:14px" type="button">تحديث النتائج</button>
+    </aside>
+  </div>
+  <footer><h2>فرع الملاك بيحبك</h2>
+
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let attemptId = null;
+  let questions = [];
+  let answers = {};
+  let currentIndex = 0;
+  let deadline = 0;
+  let timerInterval = null;
+  let qrScanner = null;
+  let busy = false;
+
+  function setStatus(id, message, type = "") {
+    const el = $(id);
+    el.textContent = message || "";
+    el.className = "status " + type;
+  }
+  function showSection(id) {
+    ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
+  }
+  // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
+  const API_URL = "https://script.google.com/macros/s/AKfycbxwp3H7wSO55GxNl6jOBohhAgQbmz7TxAf7Fm2-vd7Ktk_A_vR2OoYcDFUMNRq5N84JpQ/exec";
+
+  async function callServer(method, ...args) {
+    let res;
+    try {
+      res = await fetch(API_URL, {
+        method: "POST",
+        // text/plain علشان المتصفح ما يبعتش preflight (Apps Script مش بيدعمه)
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ method: method, args: args })
+      });
+    } catch (e) {
+      throw new Error("تعذر الاتصال بالخادم. تأكد من الإنترنت وحاول مرة أخرى.");
+    }
+    let data;
+    try { data = await res.json(); }
+    catch (e) { throw new Error("رد غير متوقع من الخادم. تأكد أن النشر على Anyone وأنه أحدث نسخة."); }
+    if (data && data.__error) throw new Error(data.__error);
+    return data;
+  }
+  async function loadInfo() {
+    try {
+      const info = await callServer("getPublicInfo");
+      $("sessionTitle").textContent = info.sessionTitle + " · " + info.questionCount + " questions";
+      $("leaderboardSubtitle").textContent = "أعلى النتائج · " + info.sessionTitle;
+    } catch (e) {
+      $("sessionTitle").textContent = "Could not load session details.";
+      setStatus("entryStatus", e.message, "bad");
+    }
+  }
+  async function verifyId() {
+    const id = $("studentId").value.trim();
+    if (!id) return setStatus("entryStatus", "اكتب رقم المشارك أو امسح رمز QR.", "bad");
+    $("verifyBtn").disabled = true;
+    setStatus("entryStatus", "جارٍ التحقق من رقم المشارك…");
+    try {
+      const result = await callServer("verifyParticipant", id);
+      setStatus("entryStatus", result.success ? "ID verified. Welcome, " + result.participant.displayName + "!" : result.message, result.success ? "good" : "bad");
+    } catch (e) {
+      setStatus("entryStatus", e.message, "bad");
+    } finally {
+      $("verifyBtn").disabled = false;
+    }
+  }
+  async function startQuiz() {
+    if (busy) return;
+    const id = $("studentId").value.trim();
+    if (!id) return setStatus("entryStatus", "اكتب رقم المشارك أو امسح رمز QR.", "bad");
+    busy = true;
+    $("startBtn").disabled = true;
+    setStatus("entryStatus", "جارٍ التحقق وفتح الاختبار…");
+    try {
+      const result = await callServer("startQuiz", id);
+      if (!result.success) {
+        setStatus("entryStatus", result.message, "bad");
+        return;
+      }
+      attemptId = result.attemptId;
+      questions = result.questions;
+      answers = {};
+      currentIndex = 0;
+      deadline = Date.now() + result.durationSeconds * 1000;
+      showSection("quiz");
+      renderQuestion();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 250);
+      updateTimer();
+    } catch (e) {
+      setStatus("entryStatus", e.message, "bad");
+    } finally {
+      busy = false;
+      $("startBtn").disabled = false;
+    }
+  }
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    $("questionCounter").textContent = `السؤال ${currentIndex + 1} من ${questions.length}`;
+    $("progressBar").style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+    $("questionText").textContent = q.text;
+    $("options").replaceChildren();
+    q.options.forEach((option, i) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "option" + (answers[q.id] === option.id ? " selected" : "");
+      const letter = document.createElement("span");
+      letter.className = "letter";
+      letter.textContent = String.fromCharCode(65 + i);
+      const label = document.createElement("span");
+      label.textContent = option.text;
+      button.append(letter, label);
+      button.addEventListener("click", () => {
+        answers[q.id] = option.id;
+        renderQuestion();
+      });
+      $("options").appendChild(button);
+    });
+    $("prevBtn").disabled = currentIndex === 0;
+    $("nextBtn").classList.toggle("hidden", currentIndex === questions.length - 1);
+    $("submitBtn").classList.toggle("hidden", currentIndex !== questions.length - 1);
+    setStatus("quizStatus", "");
+  }
+  function updateTimer() {
+    const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
+    const seconds = String(remaining % 60).padStart(2, "0");
+    $("timer").textContent = `${minutes}:${seconds}`;
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      submitQuiz(true);
+    }
+  }
+  async function submitQuiz(auto = false) {
+    if (busy || !attemptId) return;
+    busy = true;
+    $("submitBtn").disabled = true;
+    setStatus("quizStatus", auto ? "انتهى الوقت. جارٍ حفظ إجاباتك…" : "جارٍ تسليم الإجابات…");
+    try {
+      const result = await callServer("submitQuiz", attemptId, answers);
+      clearInterval(timerInterval);
+      if (!result.success) {
+        setStatus("quizStatus", result.message, "bad");
+        return;
+      }
+      attemptId = null;
+      $("resultScore").textContent = `${result.score}/${result.maxScore}`;
+      $("resultMessage").textContent = result.message;
+      showSection("result");
+      await loadLeaderboard();
+    } catch (e) {
+      setStatus("quizStatus", e.message + " لم يتم تأكيد حفظ إجاباتك.", "bad");
+    } finally {
+      busy = false;
+      $("submitBtn").disabled = false;
+    }
+  }
+  async function loadLeaderboard() {
+    $("leaderboard").innerHTML = '<p class="status">جارٍ تحميل النتائج…</p>';
+    try {
+      const result = await callServer("getLeaderboard");
+      $("leaderboard").replaceChildren();
+      if (!result.entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "status";
+        empty.textContent = "لا توجد نتائج بعد. كن أول المشاركين!";
+        $("leaderboard").appendChild(empty);
+        return;
+      }
+      result.entries.forEach((entry, index) => {
+        const row = document.createElement("div");
+        row.className = "leader-row";
+        const rank = document.createElement("span");
+        rank.className = "rank";
+        rank.textContent = index + 1;
+        const name = document.createElement("span");
+        name.className = "leader-name";
+        name.textContent = entry.displayName;
+        const score = document.createElement("span");
+        score.className = "score";
+        score.textContent = entry.score;
+        row.append(rank, name, score);
+        $("leaderboard").appendChild(row);
+      });
+    } catch (e) {
+      $("leaderboard").innerHTML = "";
+      const p = document.createElement("p");
+      p.className = "status bad";
+      p.textContent = e.message;
+      $("leaderboard").appendChild(p);
+    }
+  }
+  async function toggleScanner() {
+    if (qrScanner) {
+      try { await qrScanner.stop(); } catch (e) {}
+      try { qrScanner.clear(); } catch (e) {}
+      qrScanner = null;
+      $("reader").classList.add("hidden");
+      $("scanBtn").textContent = "امسح QR";
+      return;
+    }
+    if (typeof Html5Qrcode === "undefined") {
+      return setStatus("entryStatus", "تعذر تحميل ماسح QR. يمكنك كتابة رقم المشارك يدويًا.", "bad");
+    }
+    $("reader").classList.remove("hidden");
+    $("scanBtn").textContent = "إيقاف المسح";
+    qrScanner = new Html5Qrcode("reader");
+    try {
+      await qrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        async (decodedText) => {
+          $("studentId").value = decodedText.trim();
+          try { await qrScanner.stop(); } catch (e) {}
+          try { qrScanner.clear(); } catch (e) {}
+          qrScanner = null;
+          $("reader").classList.add("hidden");
+          $("scanBtn").textContent = "امسح QR";
+          setStatus("entryStatus", "تم مسح الرمز. يمكنك تأكيد الرقم أو بدء الاختبار.", "good");
+        },
+        () => {}
+      );
+    } catch (e) {
+      qrScanner = null;
+      $("reader").classList.add("hidden");
+      $("scanBtn").textContent = "امسح QR";
+      setStatus("entryStatus", "تعذر فتح الكاميرا. اسمح بالوصول إليها أو اكتب رقمك.", "bad");
+    }
+  }
+
+  $("verifyBtn").addEventListener("click", verifyId);
+  $("startBtn").addEventListener("click", startQuiz);
+  $("scanBtn").addEventListener("click", toggleScanner);
+  $("prevBtn").addEventListener("click", () => { if (currentIndex > 0) { currentIndex--; renderQuestion(); } });
+  $("nextBtn").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); } });
+  $("submitBtn").addEventListener("click", () => submitQuiz(false));
+  $("refreshBtn").addEventListener("click", loadLeaderboard);
+  $("againBtn").addEventListener("click", () => {
+    clearInterval(timerInterval);
+    showSection("entry");
+    setStatus("entryStatus", "");
+    loadLeaderboard();
+  });
+  loadInfo();
+  loadLeaderboard();
+</script>
+</body>
+</html>
