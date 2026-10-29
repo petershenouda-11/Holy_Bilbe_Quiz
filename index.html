@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>فرع الملاك | أسئلة القداس</title>
-  <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root{color-scheme:dark;--bg:#0b0b14;--panel:#151526;--panel2:#1d1d32;--text:#f5f3ff;--muted:#b7b4ce;--accent:#a78bfa;--accent2:#7c3aed;--good:#86efac;--bad:#fca5a5;--border:#33324d}
     *{box-sizing:border-box}
@@ -68,16 +67,11 @@
       <section id="entry">
         <h2>ابدأ الاختبار</h2>
         <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
-        <label for="studentId">رقم المشارك</label>
-        <input id="studentId" autocomplete="off" placeholder="مثال: P001">
-        <div class="row" style="margin-top:9px">
-          <button id="scanBtn" class="secondary" type="button">امسح QR</button>
-          <button id="verifyBtn" class="secondary" type="button">تأكيد الرقم</button>
-        </div>
-        <div id="reader" class="hidden"></div>
+        <label for="studentId">الاسم</label>
+        <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
         <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
         <p id="entryStatus" class="status" role="status"></p>
-        <p class="hint">يُفضّل أن يحتوي رمز QR على رقم المشارك فقط، دون أي بيانات شخصية.</p>
+        <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
       </section>
 
       <section id="quiz" class="hidden">
@@ -125,8 +119,7 @@
   let currentIndex = 0;
   let deadline = 0;
   let timerInterval = null;
-  let qrScanner = null;
-  let busy = false;
+    let busy = false;
 
   function setStatus(id, message, type = "") {
     const el = $(id);
@@ -137,9 +130,10 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.google.com/macros/s/AKfycbxwp3H7wSO55GxNl6jOBohhAgQbmz7TxAf7Fm2-vd7Ktk_A_vR2OoYcDFUMNRq5N84JpQ/exec";
+  const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
   async function callServer(method, ...args) {
+    if (API_URL.includes("PASTE_YOUR")) throw new Error("لازم تحط رابط الـ Web App (ينتهي بـ /exec) في متغير API_URL.");
     let res;
     try {
       res = await fetch(API_URL, {
@@ -160,34 +154,20 @@
   async function loadInfo() {
     try {
       const info = await callServer("getPublicInfo");
-      $("sessionTitle").textContent = info.sessionTitle + " · " + info.questionCount + " questions";
+      $("sessionTitle").textContent = info.sessionTitle + " · " + info.questionCount + " سؤال";
       $("leaderboardSubtitle").textContent = "أعلى النتائج · " + info.sessionTitle;
     } catch (e) {
-      $("sessionTitle").textContent = "Could not load session details.";
+      $("sessionTitle").textContent = "تعذر تحميل بيانات الاختبار.";
       setStatus("entryStatus", e.message, "bad");
-    }
-  }
-  async function verifyId() {
-    const id = $("studentId").value.trim();
-    if (!id) return setStatus("entryStatus", "اكتب رقم المشارك أو امسح رمز QR.", "bad");
-    $("verifyBtn").disabled = true;
-    setStatus("entryStatus", "جارٍ التحقق من رقم المشارك…");
-    try {
-      const result = await callServer("verifyParticipant", id);
-      setStatus("entryStatus", result.success ? "ID verified. Welcome, " + result.participant.displayName + "!" : result.message, result.success ? "good" : "bad");
-    } catch (e) {
-      setStatus("entryStatus", e.message, "bad");
-    } finally {
-      $("verifyBtn").disabled = false;
     }
   }
   async function startQuiz() {
     if (busy) return;
     const id = $("studentId").value.trim();
-    if (!id) return setStatus("entryStatus", "اكتب رقم المشارك أو امسح رمز QR.", "bad");
+    if (id.length < 2) return setStatus("entryStatus", "اكتب اسمك أولًا.", "bad");
     busy = true;
     $("startBtn").disabled = true;
-    setStatus("entryStatus", "جارٍ التحقق وفتح الاختبار…");
+    setStatus("entryStatus", "جارٍ فتح الاختبار…");
     try {
       const result = await callServer("startQuiz", id);
       if (!result.success) {
@@ -307,57 +287,20 @@
       $("leaderboard").appendChild(p);
     }
   }
-  async function toggleScanner() {
-    if (qrScanner) {
-      try { await qrScanner.stop(); } catch (e) {}
-      try { qrScanner.clear(); } catch (e) {}
-      qrScanner = null;
-      $("reader").classList.add("hidden");
-      $("scanBtn").textContent = "امسح QR";
-      return;
-    }
-    if (typeof Html5Qrcode === "undefined") {
-      return setStatus("entryStatus", "تعذر تحميل ماسح QR. يمكنك كتابة رقم المشارك يدويًا.", "bad");
-    }
-    $("reader").classList.remove("hidden");
-    $("scanBtn").textContent = "إيقاف المسح";
-    qrScanner = new Html5Qrcode("reader");
-    try {
-      await qrScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        async (decodedText) => {
-          $("studentId").value = decodedText.trim();
-          try { await qrScanner.stop(); } catch (e) {}
-          try { qrScanner.clear(); } catch (e) {}
-          qrScanner = null;
-          $("reader").classList.add("hidden");
-          $("scanBtn").textContent = "امسح QR";
-          setStatus("entryStatus", "تم مسح الرمز. يمكنك تأكيد الرقم أو بدء الاختبار.", "good");
-        },
-        () => {}
-      );
-    } catch (e) {
-      qrScanner = null;
-      $("reader").classList.add("hidden");
-      $("scanBtn").textContent = "امسح QR";
-      setStatus("entryStatus", "تعذر فتح الكاميرا. اسمح بالوصول إليها أو اكتب رقمك.", "bad");
-    }
-  }
-
-  $("verifyBtn").addEventListener("click", verifyId);
   $("startBtn").addEventListener("click", startQuiz);
-  $("scanBtn").addEventListener("click", toggleScanner);
   $("prevBtn").addEventListener("click", () => { if (currentIndex > 0) { currentIndex--; renderQuestion(); } });
   $("nextBtn").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); } });
   $("submitBtn").addEventListener("click", () => submitQuiz(false));
   $("refreshBtn").addEventListener("click", loadLeaderboard);
   $("againBtn").addEventListener("click", () => {
     clearInterval(timerInterval);
+    $("studentId").value = "";
     showSection("entry");
     setStatus("entryStatus", "");
     loadLeaderboard();
   });
+  $("studentId").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
+  window.addEventListener("beforeunload", (e) => { if (attemptId) { e.preventDefault(); e.returnValue = ""; } });
   loadInfo();
   loadLeaderboard();
 </script>
