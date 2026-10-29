@@ -46,6 +46,19 @@
     .quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
     .result{text-align:center;padding:20px 0}.result-score{font-size:52px;line-height:1.2;font-weight:900;color:#c4b5fd;margin:10px}
     #reader{width:100%;margin-top:12px;overflow:hidden;border-radius:12px}
+    #reviewBox{direction:rtl;text-align:right;margin-top:16px}
+    .review-sum{font-weight:800;margin:0 0 12px;color:#ddd6fe}
+    .review-q{background:#1b1b30;border:1px solid var(--border);border-radius:16px;padding:14px;margin:12px 0}
+    .review-title{font-weight:750;line-height:1.5;margin-bottom:8px}
+    .review-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:7px 0;border:1px solid var(--border);border-radius:12px;background:#151526;color:var(--muted)}
+    .review-opt .letter{display:grid;place-items:center;min-width:28px;height:28px;border-radius:8px;background:#30304a;font-weight:800;color:var(--text)}
+    .review-opt .txt{flex:1;overflow-wrap:anywhere}
+    .review-opt .tag{font-size:12px;font-weight:800;white-space:nowrap}
+    .review-opt.correct{border-color:var(--good);background:#12301f;color:#d1fae5}
+    .review-opt.correct .tag{color:var(--good)}
+    .review-opt.wrong{border-color:var(--bad);background:#3a1a20;color:#fee2e2}
+    .review-opt.wrong .tag{color:var(--bad)}
+    .review-note{font-size:13px;color:var(--bad);margin-top:6px}
     footer{text-align:center;color:#77748e;font-size:12px;margin-top:24px}
     @media(max-width:720px){.layout{grid-template-columns:1fr}.wrap{padding-top:18px}.card{padding:18px}.question{font-size:20px}}
   </style>
@@ -95,6 +108,8 @@
         <h2 style="margin-top:18px">نتيجتك</h2>
         <div id="resultScore" class="result-score">0/5</div>
         <p id="resultMessage" class="subtitle"></p>
+        <button id="reviewBtn" class="secondary" style="width:100%;margin-top:14px" type="button">اعرف غلطاتك</button>
+        <div id="reviewBox" class="hidden"></div>
         <button id="againBtn" class="primary" type="button">العودة للبداية</button>
       </section>
     </main>
@@ -120,6 +135,7 @@
   let deadline = 0;
   let timerInterval = null;
     let busy = false;
+  let reviewData = null;
 
   function setStatus(id, message, type = "") {
     const el = $(id);
@@ -130,7 +146,7 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.google.com/macros/s/AKfycbzGByO4ZKyhFeb_nuzYiZMQmDNpoWnk-KVNhBUYZ4YK4nwcnG1wb0aMGc0VAbPRNIXf/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbxfbTBWMU-fjp_pjKosQfR1XEMFo7pvaNlDXZnc_l2_JcvFC8p2pPfNW9fzkgMq7va5ig/exec";
 
   async function callServer(method, ...args) {
     if (API_URL.includes("PASTE_YOUR")) throw new Error("لازم تحط رابط الـ Web App (ينتهي بـ /exec) في متغير API_URL.");
@@ -240,6 +256,8 @@
         setStatus("quizStatus", result.message, "bad");
         return;
       }
+      reviewData = { questions: questions.slice(), answers: Object.assign({}, answers), correct: result.correct || {} };
+      resetReview();
       attemptId = null;
       $("resultScore").textContent = `${result.score}/${result.maxScore}`;
       $("resultMessage").textContent = result.message;
@@ -250,6 +268,72 @@
     } finally {
       busy = false;
       $("submitBtn").disabled = false;
+    }
+  }
+  function resetReview() {
+    $("reviewBox").replaceChildren();
+    $("reviewBox").classList.add("hidden");
+    $("reviewBtn").textContent = "اعرف غلطاتك";
+  }
+  function renderReview() {
+    const box = $("reviewBox");
+    box.replaceChildren();
+    if (!reviewData) return;
+    const { questions: qs, answers: ans, correct } = reviewData;
+    let wrong = 0;
+    const cards = qs.map((q, qi) => {
+      const chosen = ans[q.id] == null ? "" : String(ans[q.id]);
+      const right = correct[q.id] == null ? "" : String(correct[q.id]);
+      if (chosen !== right) wrong++;
+      const card = document.createElement("div");
+      card.className = "review-q";
+      const title = document.createElement("div");
+      title.className = "review-title";
+      title.textContent = (qi + 1) + ". " + q.text;
+      card.appendChild(title);
+      q.options.forEach((o, i) => {
+        const row = document.createElement("div");
+        row.className = "review-opt";
+        const letter = document.createElement("span");
+        letter.className = "letter";
+        letter.textContent = String.fromCharCode(65 + i);
+        const txt = document.createElement("span");
+        txt.className = "txt";
+        txt.textContent = o.text;
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        if (String(o.id) === right) {
+          row.classList.add("correct");
+          tag.textContent = chosen === right ? "إجابتك ✓" : "الإجابة الصحيحة ✓";
+        } else if (String(o.id) === chosen) {
+          row.classList.add("wrong");
+          tag.textContent = "إجابتك ✗";
+        }
+        row.append(letter, txt, tag);
+        card.appendChild(row);
+      });
+      if (!chosen) {
+        const note = document.createElement("div");
+        note.className = "review-note";
+        note.textContent = "لم تجب على هذا السؤال.";
+        card.appendChild(note);
+      }
+      return card;
+    });
+    const sum = document.createElement("p");
+    sum.className = "review-sum";
+    sum.textContent = wrong === 0 ? "ممتاز! مفيش أي أخطاء 🎉" : "عدد الأسئلة الغلط: " + wrong + " من " + qs.length;
+    box.append(sum, ...cards);
+  }
+  function toggleReview() {
+    const box = $("reviewBox");
+    if (box.classList.contains("hidden")) {
+      renderReview();
+      box.classList.remove("hidden");
+      $("reviewBtn").textContent = "إخفاء الإجابات";
+      box.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      resetReview();
     }
   }
   async function loadLeaderboard() {
@@ -292,9 +376,12 @@
   $("nextBtn").addEventListener("click", () => { if (currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); } });
   $("submitBtn").addEventListener("click", () => submitQuiz(false));
   $("refreshBtn").addEventListener("click", loadLeaderboard);
+  $("reviewBtn").addEventListener("click", toggleReview);
   $("againBtn").addEventListener("click", () => {
     clearInterval(timerInterval);
     $("studentId").value = "";
+    reviewData = null;
+    resetReview();
     showSection("entry");
     setStatus("entryStatus", "");
     loadLeaderboard();
