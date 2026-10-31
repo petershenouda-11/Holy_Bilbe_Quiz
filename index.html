@@ -36,7 +36,7 @@
     .pill{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--border);background:#0e0e1b;padding:6px 10px;border-radius:999px;color:var(--muted);font-size:13px}
     .leader-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #2b2a40}.leader-row:last-child{border:0}
     .rank{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--panel2);font-weight:800}
-    .leader-name{flex:1;overflow-wrap:anywhere}.score{font-weight:800;color:#c4b5fd}
+    .leader-name{flex:1;overflow-wrap:anywhere}.leader-time{font-size:13px;color:var(--muted);direction:ltr}.score{font-weight:800;color:#c4b5fd}
     .quiz-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
     .timer{font-variant-numeric:tabular-nums;color:#ddd6fe;font-weight:800;background:#312451;padding:8px 12px;border-radius:12px;white-space:nowrap}
     .progress{height:6px;background:#302d45;border-radius:99px;overflow:hidden;margin:12px 0 22px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
@@ -84,7 +84,7 @@
         <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
         <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
         <p id="entryStatus" class="status" role="status"></p>
-        <p class="hint">معاك 10 دقائق تحل فيهم الاسئلة فركز فالوقت برضو.♥️♥️</p>
+        <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
       </section>
 
       <section id="quiz" class="hidden">
@@ -116,12 +116,12 @@
 
     <aside class="card">
       <h2>لوحة المتصدرين</h2>
-      <p class="subtitle" id="leaderboardSubtitle">أعلى النتائج في هذا الاختبار</p>
+      <p class="subtitle" id="leaderboardSubtitle">أفضل 10 نتائج في هذا الاختبار</p>
       <div id="leaderboard"><p class="status">جارٍ تحميل النتائج…</p></div>
       <button id="refreshBtn" class="secondary" style="width:100%;margin-top:14px" type="button">تحديث النتائج</button>
     </aside>
   </div>
-  <footer><h2>فرع الملاك بيحبك. ♥️♥️</h2>
+  <footer><h2>فرع الملاك بيحبك</h2>
 
   </footer>
 </div>
@@ -171,7 +171,7 @@
     try {
       const info = await callServer("getPublicInfo");
       $("sessionTitle").textContent = info.sessionTitle + " · " + info.questionCount + " سؤال";
-      $("leaderboardSubtitle").textContent = "أعلى النتائج · " + info.sessionTitle;
+      $("leaderboardSubtitle").textContent = "أفضل 10 نتائج · " + info.sessionTitle;
     } catch (e) {
       $("sessionTitle").textContent = "تعذر تحميل بيانات الاختبار.";
       setStatus("entryStatus", e.message, "bad");
@@ -348,7 +348,7 @@
         $("leaderboard").appendChild(empty);
         return;
       }
-      result.entries.forEach((entry, index) => {
+      result.entries.slice(0, 10).forEach((entry, index) => {
         const row = document.createElement("div");
         row.className = "leader-row";
         const rank = document.createElement("span");
@@ -360,7 +360,15 @@
         const score = document.createElement("span");
         score.className = "score";
         score.textContent = entry.score;
-        row.append(rank, name, score);
+        row.append(rank, name);
+        if (entry.timeSeconds != null) {
+          const t = document.createElement("span");
+          t.className = "leader-time";
+          const total = Math.round(entry.timeSeconds);
+          t.textContent = Math.floor(total / 60) + ":" + String(total % 60).padStart(2, "0");
+          row.appendChild(t);
+        }
+        row.appendChild(score);
         $("leaderboard").appendChild(row);
       });
     } catch (e) {
