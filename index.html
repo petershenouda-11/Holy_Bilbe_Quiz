@@ -46,6 +46,11 @@
     .quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
     .result{text-align:center;padding:20px 0}.result-score{font-size:52px;line-height:1.2;font-weight:900;color:#c4b5fd;margin:10px}
     #reader{width:100%;margin-top:12px;overflow:hidden;border-radius:12px}
+    .closed{text-align:center;background:#1b1b30;border:1px solid var(--border);border-radius:18px;padding:26px 18px}
+    .closed .icon{font-size:44px;line-height:1;margin-bottom:10px}
+    .closed h2{margin:0 0 10px}
+    .closed p{margin:8px 0;line-height:1.9;color:var(--muted)}
+    .closed .thanks{color:var(--text);font-weight:700}
     #reviewBox{direction:rtl;text-align:right;margin-top:16px}
     .review-sum{font-weight:800;margin:0 0 12px;color:#ddd6fe}
     .review-q{background:#1b1b30;border:1px solid var(--border);border-radius:16px;padding:14px;margin:12px 0}
@@ -78,13 +83,22 @@
   <div class="layout">
     <main class="card">
       <section id="entry">
-        <h2>ابدأ الاختبار</h2>
-        <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
-        <label for="studentId">الاسم</label>
-        <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
-        <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
-        <p id="entryStatus" class="status" role="status"></p>
-        <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
+        <div id="entryForm">
+          <h2>ابدأ الاختبار</h2>
+          <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
+          <label for="studentId">الاسم</label>
+          <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
+          <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
+          <p id="entryStatus" class="status" role="status"></p>
+          <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
+        </div>
+        <div id="closedBox" class="closed hidden">
+          <div class="icon">⏳</div>
+          <h2>انتهى وقت المسابقة</h2>
+          <p class="thanks">شكرًا لكل اللي شارك معانا 🤍</p>
+          <p>المسابقة خلصت دلوقتي، ومستنينك في المسابقات الجاية بإذن ربنا.</p>
+          <p>هنعرف أوائل المسابقة دي في الاجتماع سوا، مستنينك 🙏</p>
+        </div>
       </section>
 
       <section id="quiz" class="hidden">
@@ -114,7 +128,7 @@
       </section>
     </main>
 
-    <aside class="card">
+    <aside class="card" id="leaderboardCard">
       <h2>لوحة المتصدرين</h2>
       <p class="subtitle" id="leaderboardSubtitle">أفضل 10 نتائج في هذا الاختبار</p>
       <div id="leaderboard"><p class="status">جارٍ تحميل النتائج…</p></div>
@@ -146,6 +160,8 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
+  // خليها false لما المسابقة تخلص، و true لما تفتحها تاني
+  const CONTEST_OPEN = false;
   const API_URL = "https://script.google.com/macros/s/AKfycbxuzL3dCeAXT1YLFdPKdW5nXBJSdUCSsFDwxoT4brFir_q9Xqc1xX4sX-pYhyT-Uqbt/exec";
 
   async function callServer(method, ...args) {
@@ -396,8 +412,15 @@
   });
   $("studentId").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
   window.addEventListener("beforeunload", (e) => { if (attemptId) { e.preventDefault(); e.returnValue = ""; } });
-  loadInfo();
-  loadLeaderboard();
+  if (CONTEST_OPEN) {
+    loadInfo();
+    loadLeaderboard();
+  } else {
+    // المسابقة مقفولة: نخفي الفورم ولوحة المتصدرين ونعرض الرسالة بس
+    $("entryForm").classList.add("hidden");
+    $("leaderboardCard").classList.add("hidden");
+    $("closedBox").classList.remove("hidden");
+  }
 </script>
 </body>
 </html>
