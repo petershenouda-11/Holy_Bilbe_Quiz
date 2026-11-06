@@ -87,12 +87,7 @@
         <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
         <button id="checkBtn" class="secondary" style="width:100%;margin-top:10px" type="button">اعرف درجتك الجديدة</button>
         <p id="entryStatus" class="status" role="status"></p>
-        <div id="myResult" class="hidden result" style="padding:10px 0 0">
-          <span class="pill" id="myResultName"></span>
-          <h2 style="margin-top:14px">درجتك الجديدة</h2>
-          <div id="myResultScore" class="result-score">0/18</div>
-          <p id="myResultMessage" class="subtitle"></p>
-        </div>
+        <div id="allResults" class="hidden" style="margin-top:14px"></div>
         <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
       </section>
 
@@ -190,7 +185,6 @@
     if (busy) return;
     const id = $("studentId").value.trim();
     if (id.length < 2) return setStatus("entryStatus", "اكتب اسمك أولًا.", "bad");
-    $("myResult").classList.add("hidden");
     busy = true;
     $("startBtn").disabled = true;
     setStatus("entryStatus", "جارٍ فتح الاختبار…");
@@ -217,22 +211,56 @@
       $("startBtn").disabled = false;
     }
   }
-  async function checkResult() {
+  async function toggleAllResults() {
+    const box = $("allResults");
+    if (!box.classList.contains("hidden")) {
+      box.classList.add("hidden");
+      box.replaceChildren();
+      $("checkBtn").textContent = "اعرف درجتك الجديدة";
+      return;
+    }
     if (busy) return;
-    const name = $("studentId").value.trim();
-    if (name.length < 2) return setStatus("entryStatus", "اكتب اسمك أولًا.", "bad");
     busy = true;
     $("checkBtn").disabled = true;
-    $("myResult").classList.add("hidden");
-    setStatus("entryStatus", "جارٍ البحث عن نتيجتك…");
+    setStatus("entryStatus", "جارٍ تحميل النتائج…");
     try {
-      const r = await callServer("getMyResult", name);
-      if (!r.success) { setStatus("entryStatus", r.message, "bad"); return; }
+      const r = await callServer("getAllResults");
       setStatus("entryStatus", "");
-      $("myResultName").textContent = r.name;
-      $("myResultScore").textContent = `${r.score}/${r.maxScore}`;
-      $("myResultMessage").textContent = r.message;
-      $("myResult").classList.remove("hidden");
+      box.replaceChildren();
+      const title = document.createElement("p");
+      title.className = "review-sum";
+      if (!r.entries.length) {
+        title.textContent = "لا توجد نتائج بعد.";
+        box.appendChild(title);
+      } else {
+        title.textContent = "كل المشاركين (" + r.entries.length + ") · الدرجة من " + r.maxScore;
+        box.appendChild(title);
+        r.entries.forEach((entry, index) => {
+          const row = document.createElement("div");
+          row.className = "leader-row";
+          const rank = document.createElement("span");
+          rank.className = "rank";
+          rank.textContent = index + 1;
+          const name = document.createElement("span");
+          name.className = "leader-name";
+          name.textContent = entry.displayName;
+          const score = document.createElement("span");
+          score.className = "score";
+          score.textContent = entry.score;
+          row.append(rank, name);
+          if (entry.timeSeconds != null) {
+            const t = document.createElement("span");
+            t.className = "leader-time";
+            const total = Math.round(entry.timeSeconds);
+            t.textContent = Math.floor(total / 60) + ":" + String(total % 60).padStart(2, "0");
+            row.appendChild(t);
+          }
+          row.appendChild(score);
+          box.appendChild(row);
+        });
+      }
+      box.classList.remove("hidden");
+      $("checkBtn").textContent = "إخفاء النتائج";
     } catch (e) {
       setStatus("entryStatus", e.message, "bad");
     } finally {
@@ -427,11 +455,10 @@
   $("submitBtn").addEventListener("click", () => submitQuiz(false));
   $("refreshBtn").addEventListener("click", loadLeaderboard);
   $("reviewBtn").addEventListener("click", toggleReview);
-  $("checkBtn").addEventListener("click", checkResult);
+  $("checkBtn").addEventListener("click", toggleAllResults);
   $("againBtn").addEventListener("click", () => {
     clearInterval(timerInterval);
     $("studentId").value = "";
-    $("myResult").classList.add("hidden");
     reviewData = null;
     resetReview();
     showSection("entry");
@@ -439,7 +466,6 @@
     loadLeaderboard();
   });
   $("studentId").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
-  $("studentId").addEventListener("input", () => $("myResult").classList.add("hidden"));
   window.addEventListener("beforeunload", (e) => { if (attemptId) { e.preventDefault(); e.returnValue = ""; } });
   loadInfo();
   loadLeaderboard();
