@@ -150,7 +150,7 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.google.com/macros/s/AKfycbxuzL3dCeAXT1YLFdPKdW5nXBJSdUCSsFDwxoT4brFir_q9Xqc1xX4sX-pYhyT-Uqbt/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycby5g4V5285PQ4t0o5FnT8bNkPHFW-evplDlmpmznesMxxncI82TiSkPOJM6nPINFYY/exec";
 
   async function callServer(method, ...args) {
     if (API_URL.includes("PASTE_YOUR")) throw new Error("لازم تحط رابط الـ Web App (ينتهي بـ /exec) في متغير API_URL.");
