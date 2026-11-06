@@ -46,6 +46,12 @@
     .quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
     .result{text-align:center;padding:20px 0}.result-score{font-size:52px;line-height:1.2;font-weight:900;color:#c4b5fd;margin:10px}
     #reader{width:100%;margin-top:12px;overflow:hidden;border-radius:12px}
+    .layout.single{grid-template-columns:minmax(0,1fr);max-width:560px;margin:0 auto}
+    .closed{text-align:center;background:#1b1b30;border:1px solid var(--border);border-radius:18px;padding:26px 18px}
+    .closed .icon{font-size:44px;line-height:1;margin-bottom:10px}
+    .closed h2{margin:0 0 10px}
+    .closed p{margin:8px 0;line-height:1.9;color:var(--muted)}
+    .closed .thanks{color:var(--text);font-weight:700}
     #reviewBox{direction:rtl;text-align:right;margin-top:16px}
     .review-sum{font-weight:800;margin:0 0 12px;color:#ddd6fe}
     .review-q{background:#1b1b30;border:1px solid var(--border);border-radius:16px;padding:14px;margin:12px 0}
@@ -59,8 +65,6 @@
     .review-opt.wrong{border-color:var(--bad);background:#3a1a20;color:#fee2e2}
     .review-opt.wrong .tag{color:var(--bad)}
     .review-note{font-size:13px;color:var(--bad);margin-top:6px}
-    .review-q.excluded{opacity:.7}
-    .review-excl{font-size:13px;color:var(--muted);margin-top:6px}
     footer{text-align:center;color:#77748e;font-size:12px;margin-top:24px}
     @media(max-width:720px){.layout{grid-template-columns:1fr}.wrap{padding-top:18px}.card{padding:18px}.question{font-size:20px}}
   </style>
@@ -80,15 +84,22 @@
   <div class="layout">
     <main class="card">
       <section id="entry">
-        <h2>ابدأ الاختبار</h2>
-        <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
-        <label for="studentId">الاسم</label>
-        <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
-        <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
-        <button id="checkBtn" class="secondary" style="width:100%;margin-top:10px" type="button">اعرف درجتك الجديدة</button>
-        <p id="entryStatus" class="status" role="status"></p>
-        <div id="allResults" class="hidden" style="margin-top:14px"></div>
-        <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
+        <div id="entryForm">
+          <h2>ابدأ الاختبار</h2>
+          <p class="subtitle" id="sessionTitle">جارٍ تحميل الاختبار…</p>
+          <label for="studentId">الاسم</label>
+          <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
+          <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
+          <p id="entryStatus" class="status" role="status"></p>
+          <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
+        </div>
+        <div id="closedBox" class="closed hidden">
+          <div class="icon">⏳</div>
+          <h2>انتهى وقت المسابقة</h2>
+          <p class="thanks">شكرًا لكل اللي شارك معانا 🤍</p>
+          <p>المسابقة خلصت دلوقتي، ومستنينك في المسابقات الجاية بإذن ربنا.</p>
+          <p>هنعرف أوائل المسابقة دي في الاجتماع سوا، مستنينك 🙏</p>
+        </div>
       </section>
 
       <section id="quiz" class="hidden">
@@ -118,7 +129,7 @@
       </section>
     </main>
 
-    <aside class="card">
+    <aside class="card" id="leaderboardCard">
       <h2>لوحة المتصدرين</h2>
       <p class="subtitle" id="leaderboardSubtitle">أفضل 10 نتائج في هذا الاختبار</p>
       <div id="leaderboard"><p class="status">جارٍ تحميل النتائج…</p></div>
@@ -150,7 +161,9 @@
     ["entry", "quiz", "result"].forEach(section => $(section).classList.toggle("hidden", section !== id));
   }
   // رابط الـ Web app من Apps Script (ينتهي بـ /exec)
-  const API_URL = "https://script.google.com/macros/s/AKfycby5g4V5285PQ4t0o5FnT8bNkPHFW-evplDlmpmznesMxxncI82TiSkPOJM6nPINFYY/exec";
+  // خليها false لما المسابقة تخلص، و true لما تفتحها تاني
+  const CONTEST_OPEN = false;
+  const API_URL = "https://script.google.com/macros/s/AKfycbxuzL3dCeAXT1YLFdPKdW5nXBJSdUCSsFDwxoT4brFir_q9Xqc1xX4sX-pYhyT-Uqbt/exec";
 
   async function callServer(method, ...args) {
     if (API_URL.includes("PASTE_YOUR")) throw new Error("لازم تحط رابط الـ Web App (ينتهي بـ /exec) في متغير API_URL.");
@@ -211,63 +224,6 @@
       $("startBtn").disabled = false;
     }
   }
-  async function toggleAllResults() {
-    const box = $("allResults");
-    if (!box.classList.contains("hidden")) {
-      box.classList.add("hidden");
-      box.replaceChildren();
-      $("checkBtn").textContent = "اعرف درجتك الجديدة";
-      return;
-    }
-    if (busy) return;
-    busy = true;
-    $("checkBtn").disabled = true;
-    setStatus("entryStatus", "جارٍ تحميل النتائج…");
-    try {
-      const r = await callServer("getAllResults");
-      setStatus("entryStatus", "");
-      box.replaceChildren();
-      const title = document.createElement("p");
-      title.className = "review-sum";
-      if (!r.entries.length) {
-        title.textContent = "لا توجد نتائج بعد.";
-        box.appendChild(title);
-      } else {
-        title.textContent = "كل المشاركين (" + r.entries.length + ") · الدرجة من " + r.maxScore;
-        box.appendChild(title);
-        r.entries.forEach((entry, index) => {
-          const row = document.createElement("div");
-          row.className = "leader-row";
-          const rank = document.createElement("span");
-          rank.className = "rank";
-          rank.textContent = index + 1;
-          const name = document.createElement("span");
-          name.className = "leader-name";
-          name.textContent = entry.displayName;
-          const score = document.createElement("span");
-          score.className = "score";
-          score.textContent = entry.score;
-          row.append(rank, name);
-          if (entry.timeSeconds != null) {
-            const t = document.createElement("span");
-            t.className = "leader-time";
-            const total = Math.round(entry.timeSeconds);
-            t.textContent = Math.floor(total / 60) + ":" + String(total % 60).padStart(2, "0");
-            row.appendChild(t);
-          }
-          row.appendChild(score);
-          box.appendChild(row);
-        });
-      }
-      box.classList.remove("hidden");
-      $("checkBtn").textContent = "إخفاء النتائج";
-    } catch (e) {
-      setStatus("entryStatus", e.message, "bad");
-    } finally {
-      busy = false;
-      $("checkBtn").disabled = false;
-    }
-  }
   function renderQuestion() {
     const q = questions[currentIndex];
     $("questionCounter").textContent = `السؤال ${currentIndex + 1} من ${questions.length}`;
@@ -317,7 +273,7 @@
         setStatus("quizStatus", result.message, "bad");
         return;
       }
-      reviewData = { questions: questions.slice(), answers: Object.assign({}, answers), correct: result.correct || {}, excluded: result.excluded || [] };
+      reviewData = { questions: questions.slice(), answers: Object.assign({}, answers), correct: result.correct || {} };
       resetReview();
       attemptId = null;
       $("resultScore").textContent = `${result.score}/${result.maxScore}`;
@@ -340,16 +296,14 @@
     const box = $("reviewBox");
     box.replaceChildren();
     if (!reviewData) return;
-    const { questions: qs, answers: ans, correct, excluded } = reviewData;
-    const exSet = new Set((excluded || []).map(String));
-    let wrong = 0, counted = 0;
+    const { questions: qs, answers: ans, correct } = reviewData;
+    let wrong = 0;
     const cards = qs.map((q, qi) => {
       const chosen = ans[q.id] == null ? "" : String(ans[q.id]);
       const right = correct[q.id] == null ? "" : String(correct[q.id]);
-      const isEx = exSet.has(String(q.id));
-      if (!isEx) { counted++; if (chosen !== right) wrong++; }
+      if (chosen !== right) wrong++;
       const card = document.createElement("div");
-      card.className = "review-q" + (isEx ? " excluded" : "");
+      card.className = "review-q";
       const title = document.createElement("div");
       title.className = "review-title";
       title.textContent = (qi + 1) + ". " + q.text;
@@ -365,9 +319,7 @@
         txt.textContent = o.text;
         const tag = document.createElement("span");
         tag.className = "tag";
-        if (isEx) {
-          // سؤال محذوف من التصحيح: من غير ألوان
-        } else if (String(o.id) === right) {
+        if (String(o.id) === right) {
           row.classList.add("correct");
           tag.textContent = chosen === right ? "إجابتك ✓" : "الإجابة الصحيحة ✓";
         } else if (String(o.id) === chosen) {
@@ -377,12 +329,7 @@
         row.append(letter, txt, tag);
         card.appendChild(row);
       });
-      if (isEx) {
-        const ex = document.createElement("div");
-        ex.className = "review-excl";
-        ex.textContent = "تم حذف هذا السؤال من التصحيح، ولن يُحتسب عليك.";
-        card.appendChild(ex);
-      } else if (!chosen) {
+      if (!chosen) {
         const note = document.createElement("div");
         note.className = "review-note";
         note.textContent = "لم تجب على هذا السؤال.";
@@ -392,7 +339,7 @@
     });
     const sum = document.createElement("p");
     sum.className = "review-sum";
-    sum.textContent = wrong === 0 ? "ممتاز! مفيش أي أخطاء 🎉" : "عدد الأسئلة الغلط: " + wrong + " من " + counted;
+    sum.textContent = wrong === 0 ? "ممتاز! مفيش أي أخطاء 🎉" : "عدد الأسئلة الغلط: " + wrong + " من " + qs.length;
     box.append(sum, ...cards);
   }
   function toggleReview() {
@@ -455,7 +402,6 @@
   $("submitBtn").addEventListener("click", () => submitQuiz(false));
   $("refreshBtn").addEventListener("click", loadLeaderboard);
   $("reviewBtn").addEventListener("click", toggleReview);
-  $("checkBtn").addEventListener("click", toggleAllResults);
   $("againBtn").addEventListener("click", () => {
     clearInterval(timerInterval);
     $("studentId").value = "";
@@ -467,8 +413,16 @@
   });
   $("studentId").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
   window.addEventListener("beforeunload", (e) => { if (attemptId) { e.preventDefault(); e.returnValue = ""; } });
-  loadInfo();
-  loadLeaderboard();
+  if (CONTEST_OPEN) {
+    loadInfo();
+    loadLeaderboard();
+  } else {
+    // المسابقة مقفولة: نخفي الفورم ولوحة المتصدرين ونعرض الرسالة بس
+    $("entryForm").classList.add("hidden");
+    $("leaderboardCard").classList.add("hidden");
+    document.querySelector(".layout").classList.add("single");
+    $("closedBox").classList.remove("hidden");
+  }
 </script>
 </body>
 </html>
