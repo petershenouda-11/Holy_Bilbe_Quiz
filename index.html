@@ -59,6 +59,8 @@
     .review-opt.wrong{border-color:var(--bad);background:#3a1a20;color:#fee2e2}
     .review-opt.wrong .tag{color:var(--bad)}
     .review-note{font-size:13px;color:var(--bad);margin-top:6px}
+    .review-q.excluded{opacity:.7}
+    .review-excl{font-size:13px;color:var(--muted);margin-top:6px}
     footer{text-align:center;color:#77748e;font-size:12px;margin-top:24px}
     @media(max-width:720px){.layout{grid-template-columns:1fr}.wrap{padding-top:18px}.card{padding:18px}.question{font-size:20px}}
   </style>
@@ -83,7 +85,14 @@
         <label for="studentId">الاسم</label>
         <input id="studentId" autocomplete="off" maxlength="60" placeholder="اكتب اسمك هنا">
         <button id="startBtn" class="primary" type="button">ابدأ الاختبار</button>
+        <button id="checkBtn" class="secondary" style="width:100%;margin-top:10px" type="button">اعرف درجتك الجديدة</button>
         <p id="entryStatus" class="status" role="status"></p>
+        <div id="myResult" class="hidden result" style="padding:10px 0 0">
+          <span class="pill" id="myResultName"></span>
+          <h2 style="margin-top:14px">درجتك الجديدة</h2>
+          <div id="myResultScore" class="result-score">0/18</div>
+          <p id="myResultMessage" class="subtitle"></p>
+        </div>
         <p class="hint">يمكن الدخول بالاسم مرة واحدة فقط. لن يُقبل نفس الاسم مرتين، فاكتب اسمك بشكل صحيح.</p>
       </section>
 
@@ -181,6 +190,7 @@
     if (busy) return;
     const id = $("studentId").value.trim();
     if (id.length < 2) return setStatus("entryStatus", "اكتب اسمك أولًا.", "bad");
+    $("myResult").classList.add("hidden");
     busy = true;
     $("startBtn").disabled = true;
     setStatus("entryStatus", "جارٍ فتح الاختبار…");
@@ -205,6 +215,29 @@
     } finally {
       busy = false;
       $("startBtn").disabled = false;
+    }
+  }
+  async function checkResult() {
+    if (busy) return;
+    const name = $("studentId").value.trim();
+    if (name.length < 2) return setStatus("entryStatus", "اكتب اسمك أولًا.", "bad");
+    busy = true;
+    $("checkBtn").disabled = true;
+    $("myResult").classList.add("hidden");
+    setStatus("entryStatus", "جارٍ البحث عن نتيجتك…");
+    try {
+      const r = await callServer("getMyResult", name);
+      if (!r.success) { setStatus("entryStatus", r.message, "bad"); return; }
+      setStatus("entryStatus", "");
+      $("myResultName").textContent = r.name;
+      $("myResultScore").textContent = `${r.score}/${r.maxScore}`;
+      $("myResultMessage").textContent = r.message;
+      $("myResult").classList.remove("hidden");
+    } catch (e) {
+      setStatus("entryStatus", e.message, "bad");
+    } finally {
+      busy = false;
+      $("checkBtn").disabled = false;
     }
   }
   function renderQuestion() {
@@ -256,7 +289,7 @@
         setStatus("quizStatus", result.message, "bad");
         return;
       }
-      reviewData = { questions: questions.slice(), answers: Object.assign({}, answers), correct: result.correct || {} };
+      reviewData = { questions: questions.slice(), answers: Object.assign({}, answers), correct: result.correct || {}, excluded: result.excluded || [] };
       resetReview();
       attemptId = null;
       $("resultScore").textContent = `${result.score}/${result.maxScore}`;
@@ -279,14 +312,16 @@
     const box = $("reviewBox");
     box.replaceChildren();
     if (!reviewData) return;
-    const { questions: qs, answers: ans, correct } = reviewData;
-    let wrong = 0;
+    const { questions: qs, answers: ans, correct, excluded } = reviewData;
+    const exSet = new Set((excluded || []).map(String));
+    let wrong = 0, counted = 0;
     const cards = qs.map((q, qi) => {
       const chosen = ans[q.id] == null ? "" : String(ans[q.id]);
       const right = correct[q.id] == null ? "" : String(correct[q.id]);
-      if (chosen !== right) wrong++;
+      const isEx = exSet.has(String(q.id));
+      if (!isEx) { counted++; if (chosen !== right) wrong++; }
       const card = document.createElement("div");
-      card.className = "review-q";
+      card.className = "review-q" + (isEx ? " excluded" : "");
       const title = document.createElement("div");
       title.className = "review-title";
       title.textContent = (qi + 1) + ". " + q.text;
@@ -302,7 +337,9 @@
         txt.textContent = o.text;
         const tag = document.createElement("span");
         tag.className = "tag";
-        if (String(o.id) === right) {
+        if (isEx) {
+          // سؤال محذوف من التصحيح: من غير ألوان
+        } else if (String(o.id) === right) {
           row.classList.add("correct");
           tag.textContent = chosen === right ? "إجابتك ✓" : "الإجابة الصحيحة ✓";
         } else if (String(o.id) === chosen) {
@@ -312,7 +349,12 @@
         row.append(letter, txt, tag);
         card.appendChild(row);
       });
-      if (!chosen) {
+      if (isEx) {
+        const ex = document.createElement("div");
+        ex.className = "review-excl";
+        ex.textContent = "تم حذف هذا السؤال من التصحيح، ولن يُحتسب عليك.";
+        card.appendChild(ex);
+      } else if (!chosen) {
         const note = document.createElement("div");
         note.className = "review-note";
         note.textContent = "لم تجب على هذا السؤال.";
@@ -322,7 +364,7 @@
     });
     const sum = document.createElement("p");
     sum.className = "review-sum";
-    sum.textContent = wrong === 0 ? "ممتاز! مفيش أي أخطاء 🎉" : "عدد الأسئلة الغلط: " + wrong + " من " + qs.length;
+    sum.textContent = wrong === 0 ? "ممتاز! مفيش أي أخطاء 🎉" : "عدد الأسئلة الغلط: " + wrong + " من " + counted;
     box.append(sum, ...cards);
   }
   function toggleReview() {
@@ -385,9 +427,11 @@
   $("submitBtn").addEventListener("click", () => submitQuiz(false));
   $("refreshBtn").addEventListener("click", loadLeaderboard);
   $("reviewBtn").addEventListener("click", toggleReview);
+  $("checkBtn").addEventListener("click", checkResult);
   $("againBtn").addEventListener("click", () => {
     clearInterval(timerInterval);
     $("studentId").value = "";
+    $("myResult").classList.add("hidden");
     reviewData = null;
     resetReview();
     showSection("entry");
@@ -395,6 +439,7 @@
     loadLeaderboard();
   });
   $("studentId").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
+  $("studentId").addEventListener("input", () => $("myResult").classList.add("hidden"));
   window.addEventListener("beforeunload", (e) => { if (attemptId) { e.preventDefault(); e.returnValue = ""; } });
   loadInfo();
   loadLeaderboard();
